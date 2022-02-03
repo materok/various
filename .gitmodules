@@ -4,3 +4,6 @@
 [submodule "python3/telegramBot"]
 	path = python3/telegramBot
 	url = git@github.com:materok/telegramBot.git
+[submodule "bewerbungen"]
+	path = bewerbungen
+	url = git@github.com:materok/bewerbungen.git
