@@ -1,3 +1,6 @@
 [submodule "data"]
 	path = data
 	url = git@github.com:materok/data.git
+[submodule "python3/telegramBot"]
+	path = python3/telegramBot
+	url = git@github.com:materok/telegramBot.git
