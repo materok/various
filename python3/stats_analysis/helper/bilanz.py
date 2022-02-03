@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 from math import ceil
-from laufen import dayAndMonthToBin, convertDayToBin, SavePlot
+from helper.utils import dayAndMonthToBin, convertDayToBin, SavePlot
 
 
 def CheckSign(money,use):
@@ -46,19 +46,19 @@ def CheckFinances(day,month,year,money,use,show=False,savepng=False):
     plt.xlabel("Nummer des Monats")
     plt.xticks(x3, labels, rotation='vertical')
     plt.ylabel("Einkommen in Euro")
-    SavePlot(x3,year,"income",savepng)
+    SavePlot("%i/income"%(year),savepng)
     plt.figure(figsize=(10,10))
     plt.plot(x3, abs(listEx), linestyle="",marker="x")
     plt.xlabel("Nummer des Monats")
     plt.xticks(x3, labels, rotation='vertical')
     plt.ylabel("Ausgaben in Euro")
-    SavePlot(x3,year,"expense",savepng)
+    SavePlot("%i/expense"%(year),savepng)
     plt.figure(figsize=(10,10))
     plt.plot(x3, listIn+listEx, linestyle="",marker="x")
     plt.xlabel("Nummer des Monats")
     plt.xticks(x3, labels, rotation='vertical')
     plt.ylabel("Bilanz in Euro")
-    SavePlot(x3,year,"bilanz",savepng)
+    SavePlot("%i/bilanz"%(year),savepng)
 
     posSign=["gehalt","einzahlung","gutschrift"]
     sizesIn={}
@@ -82,34 +82,34 @@ def CheckFinances(day,month,year,money,use,show=False,savepng=False):
         plt.figure(figsize=(10,10))
         plt.pie(list(sizesIn[i].values()), labels=list(sizesIn[i].keys()),
                 autopct=lambda p: '{:.1f}'.format(p * totalIn / 100), startangle=90)
-        SavePlot(x3,year,"pieIn"+str(int(i))+"abs",savepng)
+        SavePlot("%i/pieIn"%(year)+str(int(i))+"abs",savepng)
         plt.figure(figsize=(10,10))
         plt.pie(list(sizesIn[i].values()), labels=list(sizesIn[i].keys()),
                 autopct="%1.1f%%", startangle=90)
-        SavePlot(x3,year,"pieIn"+str(int(i))+"rel",savepng)
+        SavePlot("%i/pieIn"%(year)+str(int(i))+"rel",savepng)
         totalEx = sum(sizesOut[i].values())
         plt.figure(figsize=(10,10))
         plt.pie(list(sizesOut[i].values()), labels=list(sizesOut[i].keys()),
                 autopct=lambda p: '{:.1f}'.format(p * totalEx / 100), startangle=90)
-        SavePlot(x3,year,"pieEx"+str(int(i))+"abs",savepng)
+        SavePlot("%i/pieEx"%(year)+str(int(i))+"abs",savepng)
         plt.figure(figsize=(10,10))
         plt.pie(list(sizesOut[i].values()), labels=list(sizesOut[i].keys()),
                 autopct="%1.1f%%", startangle=90)
-        SavePlot(x3,year,"pieEx"+str(int(i))+"rel",savepng)
+        SavePlot("%i/pieEx"%(year)+str(int(i))+"rel",savepng)
         categorised=categorise(sizesOut[i])
         plt.figure(figsize=(10,10))
         plt.pie(list(categorised.values()), labels=list(categorised.keys()),
                 autopct=lambda p: '{:.1f}'.format(p * totalEx / 100), startangle=90)
-        SavePlot(x3,year,"pieEx"+str(int(i))+"abs_categorised",savepng)
+        SavePlot("%i/pieEx"%(year)+str(int(i))+"abs_categorised",savepng)
         plt.figure(figsize=(10,10))
         plt.pie(list(categorised.values()), labels=list(categorised.keys()),
                 autopct="%1.1f%%", startangle=90)
-        SavePlot(x3,year,"pieEx"+str(int(i))+"rel_categorised",savepng)
+        SavePlot("%i/pieEx"%(year)+str(int(i))+"rel_categorised",savepng)
 
 def categorise(dict):
     categories={}
     used=[]
-    with open("../../categories.txt") as f:
+    with open("../../data/categories.txt") as f:
         for line in f:
             line = line.replace("\n","")
             items = line.split(" ")

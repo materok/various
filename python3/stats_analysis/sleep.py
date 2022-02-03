@@ -6,7 +6,7 @@ def main(version=17):
 
     if version==17:
         year=17
-        day,month,hBed,mBed,hAlarm,mAlarm,hUp,mUp= np.genfromtxt('../../sleep.txt',missing_values=",", filling_values = -1, unpack=True)
+        day,month,hBed,mBed,hAlarm,mAlarm,hUp,mUp= np.genfromtxt('../../data/sleep.txt',missing_values=",", filling_values = -1, unpack=True)
         fillEmpty(month)
         #print(day,month)
         GetSleepTimes(day,month,year,hBed,mBed,hAlarm,mAlarm,hUp,mUp,savepng=True)

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from math import ceil
 import warnings
 from helper.utils import *
+from os import path
+from os import makedirs
 
 class data:
     first_year=-1
@@ -17,21 +19,21 @@ class data:
         self.last_year=last_year
         self.short=short
         for year in range(first_year, last_year+1):
-            filename="../../dataLight"+str(year-2000)+".txt"
+            filename="../../data/dataLight"+str(year-2000)+".txt"
             self.loadRunningData(filename, year)
-            filename="../../stats"+str(year-2000)+".txt"
+            filename="../../data/stats"+str(year-2000)+".txt"
             self.loadWeightData(filename, year)
             if year>=2017:
                 if year==2022 and short: pass
                 else: self.loadCompositionData(filename, year)
-            filename="../../ubung"+str(year-2000)+".txt"
+            filename="../../data/ubung"+str(year-2000)+".txt"
             if year>=2019 and year<2022: self.loadTrainingData(filename, year)
             if not short:
-                filename="../../mood"+str(year-2000)+".txt"
+                filename="../../data/mood"+str(year-2000)+".txt"
                 if year>=2019 and year<2022: self.loadMoodData(filename, year)
-                filename="../../sleep"+str(year-2000)+".txt"
+                filename="../../data/sleep"+str(year-2000)+".txt"
                 if year>=2019 and year<2022: self.loadSleepData(filename, year)
-                filename="../../restingHeartrate"+str(year-2000)+".txt"
+                filename="../../data/restingHeartrate"+str(year-2000)+".txt"
                 if year>=2019 and year<2022: self.loadHRData(filename, year)
     weight={}
     def loadWeightData(self, filename, year=2019):
@@ -218,6 +220,7 @@ class data:
         for year in self.drawYears:
             print("starting with year:",year)
             where="%i/"%(year)
+            if not path.isdir("../../plots/"+where): makedirs("../../plots/"+where)
             wbins=self.weight[year]["bin"]
             weights=self.weight[year]["weight"]
             MakeDeltaPlot(wbins,weights,year,where,savepng=True)
@@ -294,6 +297,7 @@ class data:
         for year in self.drawYears:
             print("starting with year:",year)
             where="%i/"%(year)
+            if not path.isdir("../../plots/"+where): makedirs("../../plots/"+where)
             rbins=self.run[year]["bin"]
             MakeStats(self, year)
             time=self.run[year]["time"]

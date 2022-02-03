@@ -1,14 +1,14 @@
 import numpy as np
 from helper.bilanz import *
-from helper.laufen import fillEmpty, dayToMonth
+from helper.utils import fillEmpty, dayToMonth
 
 def main(version=17):
 
     if version==17:
         year=2017
 
-        money,use,day17,month17 = np.genfromtxt('../../bilanz.txt',missing_values=",", filling_values = -1, unpack=True)
-        use = (np.loadtxt("../../bilanz.txt",dtype="str"))[:,1]
+        money,use,day17,month17 = np.genfromtxt('../../data/bilanz.txt',missing_values=",", filling_values = -1, unpack=True)
+        use = (np.loadtxt("../../data/bilanz.txt",dtype="str"))[:,1]
         fillEmpty(day17)
         fillEmpty(month17)
         #~ print money

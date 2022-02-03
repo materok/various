@@ -58,7 +58,7 @@ class data:
         self.first_year=first_year
         self.last_year=last_year
         for year in range(first_year, last_year+1):
-            filename="../../mood"+str(year-2000)+".txt"
+            filename="../../data/mood"+str(year-2000)+".txt"
             if year>=2019: self.loadMoodData(filename)
     mood={}
     def loadMoodData(self, filename, year=2019):
@@ -91,7 +91,7 @@ class data:
 
 def main(version=17):
 
-    d=data(2019,2019)
+    d=data(2019,2020)
     makeMoodPlot(data,2019)
 
 
