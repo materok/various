@@ -2,7 +2,7 @@ from helper.laufen import data
 #import numpy as np
 from helper.utils import *
 
-# def main(lastyear=2022,short=False):
+#def main(lastyear=2022,short=False):
 def main(lastyear=2022,short=True):
 
     #print("ok")
