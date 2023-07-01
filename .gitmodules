@@ -1,0 +1,15 @@
+[submodule "data"]
+	path = data
+	url = git@github.com:materok/data.git
+[submodule "python3/garmin/garminData"]
+	path = python3/garmin/garminData
+	url = git@github.com:materok/garminData.git
+[submodule "defense"]
+	path = defense
+	url = git@github.com:materok/defense.git
+[submodule "bewerbungen"]
+	path = bewerbungen
+	url = git@github.com:materok/bewerbungen.git
+[submodule "python3/telegramBot"]
+	path = python3/telegramBot
+	url = git@github.com:materok/telegramBot.git
