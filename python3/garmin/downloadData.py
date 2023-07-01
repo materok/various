@@ -2,7 +2,7 @@ import datetime
 from login import login
 import cloudscraper
 from idbutils import RestClient, RestException
-from mm.readConfig import setupConfig, getDate
+from helper.readConfig import setupConfig, getDate
 from time import sleep
 from tqdm import tqdm
 import os
