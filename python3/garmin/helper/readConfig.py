@@ -1,8 +1,8 @@
-def setupConfig(dirName):
+def setupConfig(configFileName, dirName):
     import json
     import os
-    assert os.path.exists(os.getcwd()+"/GarminConnectConfig.json"), "Config file doesnt exist"
-    with open(os.getcwd()+"/GarminConnectConfig.json", "r") as f:
+    assert os.path.exists(configFileName), "Config file doesnt exist"
+    with open(configFileName, "r") as f:
         jsonFile=json.load(f)
     for variable in ["user", "password"]:
         assert os.path.exists(f'{dirName}/{variable}.txt'), f'file {dirName}/{variable}.txt doesnt exist'
@@ -16,10 +16,21 @@ def getPW(jsonFile):
 def getUser(jsonFile):
     return jsonFile["credentials"]["user"]
 def getDate(jsonFile):
-    return jsonFile["data"]["monitoring_start_date"]
+    return jsonFile["data"]["start_date"]
+def isEnabled(jsonFile, statName):
+    return jsonFile["enabled_stats"][statName]
+def getCount(jsonFile, allActivities=False):
+    if allActivities:
+        return jsonFile["data"]["download_latest_activities"]
+    else:
+        return jsonFile["data"]["download_all_activities"]
 
 if __name__=="__main__":
-    jsonFile=setupConfig("../../../data/garmin")
+    import os
+    jsonFile=setupConfig(os.path.join(os.getcwd(), "..")+"/GarminConnectConfig.json", "../garminData")
     getUser(jsonFile)
     getPW(jsonFile)
-    print(getDate(jsonFile))
+    getDate(jsonFile)
+    isEnabled(jsonFile, "dailySummary")
+    getCount(jsonFile, False)
+    getCount(jsonFile, True)

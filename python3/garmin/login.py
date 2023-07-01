@@ -75,5 +75,5 @@ if __name__=="__main__":
     session=cloudscraper.CloudScraper()
     restClient=RestClient(session, 'connect.garmin.com', 'modern', aditional_headers={'NK': 'NT'})
     ssoClient=RestClient(session, 'sso.garmin.com', 'sso', aditional_headers={'NK': 'NT'})
-    jsonFile=setupConfig("garminData/")
+    jsonFile=setupConfig("GarminConnectConfig.json", "garminData/")
     login(session, restClient, ssoClient, jsonFile)

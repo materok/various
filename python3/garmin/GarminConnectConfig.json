@@ -5,24 +5,21 @@
         "password"                      : ""
     },
     "data": {
-        "weight_start_date"             : "01/01/2019",
-        "sleep_start_date"              : "01/01/2019",
-        "rhr_start_date"                : "01/01/2023",
-        "monitoring_start_date"         : "24/06/2023",
-        "download_latest_activities"    : 25,
+        "start_date"                    : "24/06/2023",
+        "download_latest_activities"    : 10,
         "download_all_activities"       : 1000
     },
     "copy": {
         "mount_dir"                     : "/Volumes/GARMIN"
     },
     "enabled_stats": {
-        "monitoring"                    : true,
-        "steps"                         : true,
-        "itime"                         : true,
-        "sleep"                         : true,
-        "rhr"                           : true,
+        "dailySummary"                  : true,
+        "steps"                         : false,
+        "itime"                         : false,
+        "sleep"                         : false,
+        "rhr"                           : false,
         "weight"                        : true,
-        "activities"                    : true
+        "activities"                    : false
     },
     "course_views": {
         "steps"                         : []
