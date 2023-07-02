@@ -127,13 +127,13 @@ def get_activities(restClient, activityClient, downloadClient, directory, count,
     """Download activities files from Garmin Connect and save the raw files."""
     #tempDir=tempfile.mkdtemp()
     activities = getActivitySummaries(restClient, 0, count)
-    #for activity in tqdm(activities or [], unit='activities'):
-        #activity_id_str = str(activity['activityId'])
-        #activity_name_str = printable(activity['activityName'])
-        #json_filename = f'{directory}/activity_{activity_id_str}.json'
-        #if not os.path.isfile(json_filename) or overwrite:
+    for activity in tqdm(activities or [], unit='activities'):
+        activity_id_str = str(activity['activityId'])
+        activity_name_str = printable(activity['activityName'])
+        json_filename = f'{directory}/activity_{activity_id_str}.json'
+        if not os.path.isfile(json_filename) or overwrite:
+            restClient.save_json_to_file(json_filename, activity)
             #downloadActivityDetails(activityClient, directory, activity_id_str, overwrite)
-            #restClient.save_json_to_file(json_filename, activity)
             #if not os.path.isfile(f'{directory}/{activity_id_str}.fit') or overwrite:
                 #downloadActivityFile(downloadClient, tempDir, activity_id_str)
                 # pause for a second between every page access
