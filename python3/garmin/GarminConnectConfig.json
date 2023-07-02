@@ -19,7 +19,7 @@
         "sleep"                         : false,
         "rhr"                           : false,
         "weight"                        : true,
-        "activities"                    : false
+        "activities"                    : true
     },
     "course_views": {
         "steps"                         : []

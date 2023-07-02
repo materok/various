@@ -6,8 +6,9 @@ from helper.readConfig import setupConfig, getDate, isEnabled, getCount
 from time import sleep
 from tqdm import tqdm
 import os
-import tempfile
+#import tempfile
 import re
+#import zipfile
 
 def downloadData(downloadAll=False):
 
@@ -106,61 +107,50 @@ def getActivitySummaries(restClient, start, count):
     except RestException as e:
         print("Exception getting activity summary: %s", e)
 
-def downloadActivityDetails(activityClient, directory, activity_id_str, overwrite):
-    json_filename = f'{directory}/activity_details_{activity_id_str}'
-    try:
-        activityClient.download_json_file(activity_id_str, json_filename, overwrite)
-    except RestException as e:
-        print("Exception getting daily summary %s", e)
+#def downloadActivityDetails(activityClient, directory, activity_id_str, overwrite):
+    #json_filename = f'{directory}/activity_details_{activity_id_str}'
+    #try:
+        #activityClient.download_json_file(activity_id_str, json_filename, overwrite)
+    #except RestException as e:
+        #print("Exception getting daily summary %s", e)
 
-def downloadActivityFile(downloadClient, tempDir, activity_id_str):
-    zip_filename = f'{tempDir}/activity_{activity_id_str}.zip'
-    url = f'activity/{activity_id_str}'
-    try:
-        downloadClient.download_binary_file(url, zip_filename)
-    except RestException as e:
-        root_logger.error("Exception downloading activity file: %s", e)
+#def downloadActivityFile(downloadClient, tempDir, activity_id_str):
+    #print("ok")
+    #zip_filename = f'{tempDir}/activity_{activity_id_str}.zip'
+    #url = f'activity/{activity_id_str}'
+    #try:
+        #downloadClient.download_binary_file(url, zip_filename)
+    #except RestException as e:
+        #print("Exception downloading activity file: %s", e)
 
 def get_activities(restClient, activityClient, downloadClient, directory, count, overwrite=False):
     """Download activities files from Garmin Connect and save the raw files."""
-    tempDir=tempfile.mkdtemp()
+    #tempDir=tempfile.mkdtemp()
     activities = getActivitySummaries(restClient, 0, count)
-    for activity in tqdm(activities or [], unit='activities'):
-        activity_id_str = str(activity['activityId'])
-        activity_name_str = printable(activity['activityName'])
-        #print("get_activities: %s (%s)", activity_name_str, activity_id_str)
-        json_filename = f'{directory}/activity_{activity_id_str}.json'
-        if not os.path.isfile(json_filename) or overwrite:
-            #print("get_activities: %s <- %r", json_filename, activity)
-            downloadActivityDetails(activityClient, directory, activity_id_str, overwrite)
-            restClient.save_json_to_file(json_filename, activity)
-            if not os.path.isfile(f'{directory}/{activity_id_str}.fit') or overwrite:
-                downloadActivityFile(downloadClient, tempDir, activity_id_str)
-            # pause for a second between every page access
-            sleep(1)
-    unzip_files(tempDir, directory)
+    #for activity in tqdm(activities or [], unit='activities'):
+        #activity_id_str = str(activity['activityId'])
+        #activity_name_str = printable(activity['activityName'])
+        #json_filename = f'{directory}/activity_{activity_id_str}.json'
+        #if not os.path.isfile(json_filename) or overwrite:
+            #downloadActivityDetails(activityClient, directory, activity_id_str, overwrite)
+            #restClient.save_json_to_file(json_filename, activity)
+            #if not os.path.isfile(f'{directory}/{activity_id_str}.fit') or overwrite:
+                #downloadActivityFile(downloadClient, tempDir, activity_id_str)
+                # pause for a second between every page access
+        #sleep(1)
+    #unzip_files(tempDir, directory)
 
-def get_activity_types(self, directory, overwite):
-    """Download the activity types from Garmin Connect and save to a JSON file."""
-    root_logger.info("get_activity_types: '%s'", directory)
-    json_filename = f'{directory}/activity_types'
-    try:
-        self.activity_service_rest_client.download_json_file('activityTypes', json_filename, overwite)
-    except RestException as e:
-        root_logger.error("Exception getting activity types: %s", e)
-
-def unzip_files(tempDir, outdir):
-    """Unzip and downloaded zipped files into the directory supplied."""
-    #root_logger.info("unzip_files: from %s to %s", self.temp_dir, outdir)
-    for filename in os.listdir(tempDir):
-        match = re.search(r'.*\.zip', filename)
-        if match:
-            full_pathname = f'{tempDir}/{filename}'
-            with zipfile.ZipFile(full_pathname, 'r') as files_zip:
-                try:
-                    files_zip.extractall(outdir)
-                except Exception as e:
-                    print('Failed to unzip %s to %s: %s', full_pathname, outdir, e)
+#def unzip_files(tempDir, outdir):
+    #"""Unzip and downloaded zipped files into the directory supplied."""
+    #for filename in os.listdir(tempDir):
+        #match = re.search(r'.*\.zip', filename)
+        #if match:
+            #full_pathname = f'{tempDir}/{filename}'
+            #with zipfile.ZipFile(full_pathname, 'r') as files_zip:
+                #try:
+                    #files_zip.extractall(outdir)
+                #except Exception as e:
+                    #print('Failed to unzip %s to %s: %s', full_pathname, outdir, e)
 
 def date_to_dt(date):
     """Given a datetime date object, return a date time datetime object for the given date at 00:00:00."""

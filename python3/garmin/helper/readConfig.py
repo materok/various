@@ -21,9 +21,9 @@ def isEnabled(jsonFile, statName):
     return jsonFile["enabled_stats"][statName]
 def getCount(jsonFile, allActivities=False):
     if allActivities:
-        return jsonFile["data"]["download_latest_activities"]
-    else:
         return jsonFile["data"]["download_all_activities"]
+    else:
+        return jsonFile["data"]["download_latest_activities"]
 
 if __name__=="__main__":
     import os
