@@ -10,7 +10,7 @@ def reformatRuns():
         with open(fileName, "r") as f:
             for line in f:
                 jsonFile=json.loads(line.replace("\n",""))
-        if jsonFile["activityType"]["typeKey"] == "running":
+        if jsonFile["activityType"]["typeKey"] == "running" or jsonFile["activityType"]["typeKey"] == "treadmill_running":
             activityID=jsonFile["activityId"]
             distance=round(jsonFile["distance"])
             duration=jsonFile["duration"]
@@ -18,13 +18,20 @@ def reformatRuns():
             secs=round(duration-duration//60*60)
             avgHR=int(jsonFile["averageHR"])
             maxHR=int(jsonFile["maxHR"])
-            elevationGain=int(round(jsonFile["elevationGain"]))
+            elevationGain=jsonFile["elevationGain"]
+            if elevationGain is None:
+                elevationGain=-1
+            elevationGain=int(round(elevationGain))
             currentYear=datetime.now().year-2000
             runDate=datetime.strptime(jsonFile["startTimeGMT"], "%Y-%m-%d %H:%M:%S")
             currentYear=runDate.year
             runMonth=runDate.month
             runDay=runDate.day
-            vo2max=int(jsonFile["vO2MaxValue"])
+            vo2max=jsonFile["vO2MaxValue"]
+            if vo2max is None:
+                vo2max=-1
+            else:
+                vo2max=int(vo2max)
             if os.path.exists(f'../../data/dataFromGarmin{currentYear}.txt'):
                 with open(f'../../data/dataFromGarmin{currentYear}.txt', "r") as f:
                     for line in f:
@@ -36,10 +43,12 @@ def reformatRuns():
             if not alreadyInFile:
                 with open(f'../../data/dataFromGarmin{currentYear}.txt', "a") as f:
                     f.write(f'{mins} {secs} {distance} {avgHR} {maxHR} {elevationGain} {runDay} {runMonth} {vo2max}#activityID: {activityID}\n')
-        if jsonFile["activityType"]["typeKey"] == "cycling":
+        elif jsonFile["activityType"]["typeKey"] == "cycling":
             pass
             #print("this is a cycling activity")
-
+        else:
+            pass
+            #print(jsonFile["activityType"]["typeKey"])
 
 def reformatWeight():
     print("reformatWeight")
@@ -98,8 +107,8 @@ def reformatRHR():
 
 def reformat():
     reformatRuns()
-    reformatWeight()
-    reformatRHR()
+    #reformatWeight()
+    #reformatRHR()
 
 if __name__=="__main__":
     reformat()

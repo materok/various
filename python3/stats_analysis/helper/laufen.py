@@ -20,25 +20,31 @@ class data:
         self.short=short
         for year in range(first_year, last_year+1):
             filename="../../data/dataLight"+str(year-2000)+".txt"
-            self.loadRunningData(filename, year)
+            if year>2022:
+                filename=f"../../data/dataFromGarmin{year}.txt"
+            if path.exists(filename): self.loadRunningData(filename, year)
             filename="../../data/stats"+str(year-2000)+".txt"
-            self.loadWeightData(filename, year)
+            if year>2022:
+                filename=f"../../data/statsFromGarmin{year}.txt"
+            if path.exists(filename): self.loadWeightData(filename, year)
             if year>=2017:
                 if year==2022 and short: pass
-                else: self.loadCompositionData(filename, year)
+                elif path.exists(filename): self.loadCompositionData(filename, year)
             filename="../../data/ubung"+str(year-2000)+".txt"
-            if year>=2019 and year<2022: self.loadTrainingData(filename, year)
+            if year>=2019 and year<2022 and path.exists(filename): self.loadTrainingData(filename, year)
             filename="../../data/gym"+str(year-2000)+".txt"
-            if year>=2023: self.loadGymData(filename, year)
+            if year>=2023 and path.exists(filename): self.loadGymData(filename, year)
             if not short:
                 filename="../../data/mood"+str(year-2000)+".txt"
-                if year>=2019 and year<2022: self.loadMoodData(filename, year)
+                if year>=2019 and year<2022 and path.exists(filename): self.loadMoodData(filename, year)
                 filename="../../data/sleep"+str(year-2000)+".txt"
-                if year>=2019 and year<2022: self.loadSleepData(filename, year)
+                if year>=2019 and year<2022 and path.exists(filename): self.loadSleepData(filename, year)
                 filename="../../data/restingHeartrate"+str(year-2000)+".txt"
-                if year>=2019: self.loadHRData(filename, year)
+                if year>2022:
+                    filename=f"../../data/hrDataFromGarmin{year}.txt"
+                if year>=2019 and year<=2023 and path.exists(filename): self.loadHRData(filename, year)
                 filename="../../data/calories"+str(year-2000)+".txt"
-                if year>=2023: self.loadCalData(filename, year)
+                if year>=2023 and path.exists(filename): self.loadCalData(filename, year)
     weight={}
     def loadWeightData(self, filename, year=2019):
         with warnings.catch_warnings():
@@ -125,6 +131,9 @@ class data:
         if year!=2016 and year<2022:
             dist/=10.
             vel/=10.
+        if year>=2023:
+            dist/=1000
+            vel/=1000
         self.run[year]={}
         self.run[year]["time"]=t
         self.run[year]["distance"]=dist
@@ -211,7 +220,8 @@ class data:
         self.sleep[year]["total"]=total
     HR={}
     def loadHRData(self, filename, year=2019):
-        rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+        if year<=2023: rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+        else: rhr, minHR, maxHR, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
         self.HR[year]={}
         fillEmpty(day)
         fillEmpty(month)
@@ -220,6 +230,8 @@ class data:
         bins=dayAndMonthToBin(day,month,year)
         self.HR[year]["bin"]=bins
         self.HR[year]["rhr"]=rhr
+        self.HR[year]["minHR"]=minHR
+        self.HR[year]["maxHR"]=maxHR
     cal={}
     def loadCalData(self, filename, year=2019):
         day, month, intake, active, passive, garmin, gym= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
