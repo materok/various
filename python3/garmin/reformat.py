@@ -13,20 +13,21 @@ def reformatRuns():
         if jsonFile["activityType"]["typeKey"] == "running" or jsonFile["activityType"]["typeKey"] == "treadmill_running":
             activityID=jsonFile["activityId"]
             distance=round(jsonFile["distance"])
+            distance=f'{distance:5.0f}'.replace(" 0"," ")
             duration=jsonFile["duration"]
-            mins=int(duration//60)
-            secs=round(duration-duration//60*60)
+            mins=f'{int(duration//60):3.0f}'.replace(" 0"," ")
+            secs=f'{round(duration-duration//60*60):2.0f}'
             avgHR=int(jsonFile["averageHR"])
             maxHR=int(jsonFile["maxHR"])
             elevationGain=jsonFile["elevationGain"]
             if elevationGain is None:
                 elevationGain=-1
-            elevationGain=int(round(elevationGain))
+            elevationGain=f'{int(round(elevationGain)):3.0f}'
             currentYear=datetime.now().year-2000
             runDate=datetime.strptime(jsonFile["startTimeGMT"], "%Y-%m-%d %H:%M:%S")
             currentYear=runDate.year
-            runMonth=runDate.month
-            runDay=runDate.day
+            runMonth=f'{runDate.month:2.0f}'.replace(" 0"," ")
+            runDay=f'{runDate.day:2.0f}'.replace(" 0", " ")
             vo2max=jsonFile["vO2MaxValue"]
             if vo2max is None:
                 vo2max=-1
@@ -107,8 +108,10 @@ def reformatRHR():
 
 def reformat():
     reformatRuns()
-    #reformatWeight()
-    #reformatRHR()
+    reformatWeight()
+    reformatRHR()
 
 if __name__=="__main__":
+    import downloadData
+    downloadData.downloadData()
     reformat()

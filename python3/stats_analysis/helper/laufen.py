@@ -220,7 +220,9 @@ class data:
         self.sleep[year]["total"]=total
     HR={}
     def loadHRData(self, filename, year=2019):
-        if year<=2023: rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+        minHR=[]
+        maxHR=[]
+        if year<2023: rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
         else: rhr, minHR, maxHR, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
         self.HR[year]={}
         fillEmpty(day)
@@ -295,7 +297,8 @@ class data:
             plotVel(vel,rbins,year,where)
             plotVel(vel,rbins,year,where)
             plotLBLequiv(vel,rbins,year,where)
-            if year>2016:
+            if year>2016 and year <2023:
+                print(self.bodycomposition[year])
                 cbins=self.bodycomposition[year]["bin"]
                 water=self.bodycomposition[year]["water"]
                 muscle=self.bodycomposition[year]["muscle"]
