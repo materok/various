@@ -27,6 +27,8 @@ class data:
             if year>2022:
                 filename=f"../../data/statsFromGarmin{year}.txt"
             if path.exists(filename): self.loadWeightData(filename, year)
+            if year>2022:
+                filename=f"../../data/composition{year-2000}.txt"
             if year>=2017:
                 if year==2022 and short: pass
                 elif path.exists(filename): self.loadCompositionData(filename, year)
@@ -73,8 +75,12 @@ class data:
             warnings.simplefilter("ignore")
             self.bodycomposition[year]={}
             try:
-                day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
-                                                               usecols=(1,2,3,4,5,6), unpack=True, invalid_raise=False)
+                if year>=2023:
+                    day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
+                                                                   usecols=(0,1,2,3,4,5), unpack=True, invalid_raise=False)
+                else:
+                    day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
+                                                                   usecols=(1,2,3,4,5,6), unpack=True, invalid_raise=False)
             except:
                 return
             try:
@@ -297,8 +303,7 @@ class data:
             plotVel(vel,rbins,year,where)
             plotVel(vel,rbins,year,where)
             plotLBLequiv(vel,rbins,year,where)
-            if year>2016 and year <2023:
-                print(self.bodycomposition[year])
+            if year>2016 :
                 cbins=self.bodycomposition[year]["bin"]
                 water=self.bodycomposition[year]["water"]
                 muscle=self.bodycomposition[year]["muscle"]
@@ -327,8 +332,11 @@ class data:
                 PlotRHR(self,year)
             except:
                     pass
-            MakeGymPlot(self,year)
-            MakeMonthlyGymPlot(self,year)
+            try:
+                MakeGymPlot(self,year)
+                MakeMonthlyGymPlot(self,year)
+            except:
+                    pass
             MakeMonthCumulPlot(self,onlyYear=year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)
