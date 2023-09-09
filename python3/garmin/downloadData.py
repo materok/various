@@ -10,6 +10,8 @@ import os
 import re
 #import zipfile
 
+#https://github.com/tcgoetz/GarminDB
+
 def downloadData(downloadAll=False):
 
     session=cloudscraper.CloudScraper()
