@@ -11,6 +11,8 @@ def setupConfig(configFileName, dirName):
                 jsonFile["credentials"][variable]=line.replace("\n","")
     return jsonFile
 
+def getDomain(jsonFile):
+    return jsonFile["garmin"]["domain"]
 def getPW(jsonFile):
     return jsonFile["credentials"]["password"]
 def getUser(jsonFile):

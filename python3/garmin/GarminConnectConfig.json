@@ -1,4 +1,7 @@
 {
+    "garmin": {
+        "domain": "garmin.com"
+    },
     "credentials": {
         "user"                          : "",
         "secure_password"               : false,

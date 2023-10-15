@@ -1,35 +1,40 @@
 import datetime
-from login import login
+from login import login, login_garth
 import cloudscraper
-from idbutils import RestClient, RestException
+from idbutils import RestException
+from garth import Client as GarthClient
 from helper.readConfig import setupConfig, getDate, isEnabled, getCount
+from helper.readConfig import getUser, getPW, getDomain
 from time import sleep
 from tqdm import tqdm
 import os
-#import tempfile
 import re
-#import zipfile
+import json
 
 #https://github.com/tcgoetz/GarminDB
 
 def downloadData(downloadAll=False):
 
-    session=cloudscraper.CloudScraper()
-    restClient=RestClient(session, 'connect.garmin.com', 'modern', aditional_headers={'NK': 'NT'})
-    ssoClient=RestClient(session, 'sso.garmin.com', 'sso', aditional_headers={'NK': 'NT'})
     basedir="garminData/"
     jsonFile=setupConfig("GarminConnectConfig.json", basedir)
+
+    session=cloudscraper.CloudScraper()
+
+    garth=GarthClient(session=session)
+    garth.configure(domain=getDomain(jsonFile))
+    garth.login(getUser(jsonFile), getPW(jsonFile))
+    garmin_headers = {'NK': 'NT'}
+
     isAnyEnabled = True in [isEnabled(jsonFile, metric) for metric in jsonFile["enabled_stats"]]
     if isAnyEnabled:
-        if login(session, restClient, ssoClient, jsonFile):
-            if isEnabled(jsonFile, "dailySummary"): getDailySummary(jsonFile, basedir, restClient, downloadAll)
-            if isEnabled(jsonFile, "weight"): getWeight(jsonFile, basedir, restClient, downloadAll)
-            if isEnabled(jsonFile, "activities"):
-                activityClient = RestClient.inherit(restClient, "proxy/activity-service/activity")
-                downloadClient = RestClient.inherit(restClient, "proxy/download-service/files")
-                directory=basedir+"activities/"
-                count=getCount(jsonFile, downloadAll)
-                get_activities(restClient, activityClient, downloadClient, directory, count)
+        garmin_headers['Authorization'] = str(garth.oauth2_token)
+
+        if isEnabled(jsonFile, "dailySummary"): getDailySummary(jsonFile, basedir, garth, downloadAll)
+        if isEnabled(jsonFile, "weight"): getWeight(jsonFile, basedir, garth, downloadAll)
+        if isEnabled(jsonFile, "activities"):
+            directory=basedir+"activities/"
+            count=getCount(jsonFile, downloadAll)
+            get_activities(garth, directory, count)
 
 def determineDatesToDownload(jsonFile, basedir, subdir, downloadAll):
     startDate=datetime.datetime.strptime(getDate(jsonFile), "%d/%m/%Y")
@@ -43,7 +48,9 @@ def writeLastDate(basedir, subdir, date):
     with open(f'{basedir}/{subdir}/lastDate.txt', "w+") as f:
         f.write(date.strftime("%d/%m/%Y"))
 
-def getDailySummary(jsonFile, basedir, restClient, downloadAll):
+
+
+def getDailySummary(jsonFile, basedir, garth, downloadAll):
     subdir="dailySummaries"
     datesToDownload=determineDatesToDownload(jsonFile, basedir, subdir, downloadAll)
     if len(datesToDownload)!=0:
@@ -51,109 +58,81 @@ def getDailySummary(jsonFile, basedir, restClient, downloadAll):
             for line in f:
                 displayName=line
         for date in tqdm(datesToDownload, desc=f'downloading {subdir}'):
-            if downloadDailySummary(restClient, date, displayName, basedir, subdir):
+            if downloadDailySummary(garth, date, displayName, basedir, subdir):
                 writeLastDate(basedir, subdir, date)
             sleep(0.25)
 
-def downloadDailySummary(restClient, date, displayName, basedir, subdir, overwrite=False):
+def downloadDailySummary(garth, date, displayName, basedir, subdir, overwrite=False):
     date_str = date.strftime('%Y-%m-%d')
     summaryParams = {
         'calendarDate': date_str,
         '_': str(dt_to_epoch_ms(date_to_dt(date)))
     }
-    url = f'proxy/usersummary-service/usersummary/daily/{displayName}'
+    url = f'usersummary-service/usersummary/daily/{displayName}'
     json_filename = f'{basedir}/{subdir}/daily_summary_{date_str}'
     try:
-        restClient.download_json_file(url, json_filename, overwrite, summaryParams)
+        save_json_to_file(json_filename, garth.connectapi(url, params=summaryParams), overwrite)
         return True
     except RestException as e:
         print("Exception getting daily summary: %s", e)
         return False
 
 
-def getWeight(jsonFile, basedir, restClient, downloadAll):
+def save_json_to_file(filename, json_data, overwrite=False):
+    """Save JSON formatted data to a file."""
+    full_filename = f'{filename}.json'
+    exists = os.path.isfile(full_filename)
+    if not exists or overwrite:
+        with open(full_filename, 'w') as file:
+            file.write(json.dumps(json_data))
+
+
+def getWeight(jsonFile, basedir, garth, downloadAll):
     subdir="weight"
     datesToDownload=determineDatesToDownload(jsonFile, basedir, subdir, downloadAll)
     if len(datesToDownload)!=0:
         for date in tqdm(datesToDownload, desc=f'downloading {subdir}'):
-            if downloadWeight(restClient, date, basedir, subdir):
+            if downloadWeight(garth, date, basedir, subdir):
                 writeLastDate(basedir, subdir, date)
             sleep(0.25)
 
-def downloadWeight(restClient, date, basedir, subdir, overwrite=False):
+def downloadWeight(garth, date, basedir, subdir, overwrite=False):
     date_str = date.strftime('%Y-%m-%d')
     weightParams = {
         'startDate' : date_str,
         'endDate'   : date_str,
         '_'         : str(dt_to_epoch_ms(date_to_dt(date)))
     }
-    url = "proxy/weight-service/weight/dateRange"
+    url = "weight-service/weight/dateRange"
     json_filename = f'{basedir}/{subdir}/weight_{date_str}'
     try:
-        restClient.download_json_file(url, json_filename, overwrite, weightParams)
+        save_json_to_file(json_filename, garth.connectapi(url, params=weightParams), overwrite)
         return True
     except RestException as e:
         print("Exception getting weight: %s", e)
         return False
 
 
-def getActivitySummaries(restClient, start, count):
+def getActivitySummaries(garth, start, count):
     activitySummaryParams = {
         'start' : str(start),
         "limit" : str(count)
     }
-    url = "proxy/activitylist-service/activities/search/activities"
+    url = "activitylist-service/activities/search/activities"
     try:
-        response = restClient.get(url, params=activitySummaryParams)
-        return response.json()
+        return garth.connectapi(url, params=activitySummaryParams)
     except RestException as e:
         print("Exception getting activity summary: %s", e)
 
-#def downloadActivityDetails(activityClient, directory, activity_id_str, overwrite):
-    #json_filename = f'{directory}/activity_details_{activity_id_str}'
-    #try:
-        #activityClient.download_json_file(activity_id_str, json_filename, overwrite)
-    #except RestException as e:
-        #print("Exception getting daily summary %s", e)
-
-#def downloadActivityFile(downloadClient, tempDir, activity_id_str):
-    #print("ok")
-    #zip_filename = f'{tempDir}/activity_{activity_id_str}.zip'
-    #url = f'activity/{activity_id_str}'
-    #try:
-        #downloadClient.download_binary_file(url, zip_filename)
-    #except RestException as e:
-        #print("Exception downloading activity file: %s", e)
-
-def get_activities(restClient, activityClient, downloadClient, directory, count, overwrite=False):
+def get_activities(restClient, directory, count, overwrite=False):
     """Download activities files from Garmin Connect and save the raw files."""
-    #tempDir=tempfile.mkdtemp()
     activities = getActivitySummaries(restClient, 0, count)
     for activity in tqdm(activities or [], unit='activities'):
         activity_id_str = str(activity['activityId'])
         activity_name_str = printable(activity['activityName'])
         json_filename = f'{directory}/activity_{activity_id_str}.json'
         if not os.path.isfile(json_filename) or overwrite:
-            restClient.save_json_to_file(json_filename, activity)
-            #downloadActivityDetails(activityClient, directory, activity_id_str, overwrite)
-            #if not os.path.isfile(f'{directory}/{activity_id_str}.fit') or overwrite:
-                #downloadActivityFile(downloadClient, tempDir, activity_id_str)
-                # pause for a second between every page access
-        #sleep(1)
-    #unzip_files(tempDir, directory)
-
-#def unzip_files(tempDir, outdir):
-    #"""Unzip and downloaded zipped files into the directory supplied."""
-    #for filename in os.listdir(tempDir):
-        #match = re.search(r'.*\.zip', filename)
-        #if match:
-            #full_pathname = f'{tempDir}/{filename}'
-            #with zipfile.ZipFile(full_pathname, 'r') as files_zip:
-                #try:
-                    #files_zip.extractall(outdir)
-                #except Exception as e:
-                    #print('Failed to unzip %s to %s: %s', full_pathname, outdir, e)
-
+            save_json_to_file(json_filename, activity)
 def date_to_dt(date):
     """Given a datetime date object, return a date time datetime object for the given date at 00:00:00."""
     return datetime.datetime.combine(date, datetime.time.min)

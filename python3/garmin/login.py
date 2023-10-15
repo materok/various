@@ -4,6 +4,7 @@ import json
 from idbutils import RestClient, RestResponseException, RestException
 from helper.setupParams import setupParams
 from helper.readConfig import setupConfig, getUser, getPW
+from garth import Client as GarthClient
 
 
 def login(session, restClient, ssoClient, jsonFile):
@@ -71,9 +72,25 @@ def getJsonFromHTML(page_html, key):
         json_text = found.group(1).replace('\\"', '"')
         return json.loads(json_text)
 
+def login_garth(session, garthClient, jsonFile):
+
+    garthClient.login(getUser(jsonFile), getPW(jsonFile))
+    token = garthClient.oauth2_token
+
+    user_prefs = garthClient.profile
+
+    with open("garminData/displayName.txt","w+") as f:
+        f.write(user_prefs['displayName'])
+    #social_profile = garthClient.profile
+    return True
+
+
 if __name__=="__main__":
     session=cloudscraper.CloudScraper()
-    restClient=RestClient(session, 'connect.garmin.com', 'modern', aditional_headers={'NK': 'NT'})
-    ssoClient=RestClient(session, 'sso.garmin.com', 'sso', aditional_headers={'NK': 'NT'})
+    garthClient=GarthClient(session=session)
+    #restClient=RestClient(session, 'connect.garmin.com', 'modern', aditional_headers={'NK': 'NT'})
+    #ssoClient=RestClient(session, 'sso.garmin.com', 'sso', aditional_headers={'NK': 'NT'})
     jsonFile=setupConfig("GarminConnectConfig.json", "garminData/")
-    login(session, restClient, ssoClient, jsonFile)
+    #login(session, restClient, ssoClient, jsonFile)
+    garthClient=GarthClient(session=session)
+    login_garth(session, garthClient, jsonFile)
