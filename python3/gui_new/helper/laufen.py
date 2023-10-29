@@ -20,33 +20,21 @@ class data:
         self.short=short
         for year in range(first_year, last_year+1):
             filename="../../data/dataLight"+str(year-2000)+".txt"
-            if year>2022:
-                filename=f"../../data/dataFromGarmin{year}.txt"
-            if path.exists(filename): self.loadRunningData(filename, year)
+            self.loadRunningData(filename, year)
             filename="../../data/stats"+str(year-2000)+".txt"
-            if year>2022:
-                filename=f"../../data/statsFromGarmin{year}.txt"
-            if path.exists(filename): self.loadWeightData(filename, year)
-            if year>2022:
-                filename=f"../../data/composition{year-2000}.txt"
+            self.loadWeightData(filename, year)
             if year>=2017:
                 if year==2022 and short: pass
-                elif path.exists(filename): self.loadCompositionData(filename, year)
+                else: self.loadCompositionData(filename, year)
             filename="../../data/ubung"+str(year-2000)+".txt"
-            if year>=2019 and year<2022 and path.exists(filename): self.loadTrainingData(filename, year)
-            filename="../../data/gym"+str(year-2000)+".txt"
-            if year>=2023 and path.exists(filename): self.loadGymData(filename, year)
+            if year>=2019 and year<2022: self.loadTrainingData(filename, year)
             if not short:
                 filename="../../data/mood"+str(year-2000)+".txt"
-                if year>=2019 and year<2022 and path.exists(filename): self.loadMoodData(filename, year)
+                if year>=2019 and year<2022: self.loadMoodData(filename, year)
                 filename="../../data/sleep"+str(year-2000)+".txt"
-                if year>=2019 and year<2022 and path.exists(filename): self.loadSleepData(filename, year)
+                if year>=2019 and year<2022: self.loadSleepData(filename, year)
                 filename="../../data/restingHeartrate"+str(year-2000)+".txt"
-                if year>2022:
-                    filename=f"../../data/hrDataFromGarmin{year}.txt"
-                if year>=2019 and year<=2023 and path.exists(filename): self.loadHRData(filename, year)
-                filename="../../data/calories"+str(year-2000)+".txt"
-                if year>=2023 and path.exists(filename): self.loadCalData(filename, year)
+                if year>=2019 and year<2022: self.loadHRData(filename, year)
     weight={}
     def loadWeightData(self, filename, year=2019):
         with warnings.catch_warnings():
@@ -75,12 +63,8 @@ class data:
             warnings.simplefilter("ignore")
             self.bodycomposition[year]={}
             try:
-                if year>=2023:
-                    day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
-                                                                   usecols=(0,1,2,3,4,5), unpack=True, invalid_raise=False)
-                else:
-                    day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
-                                                                   usecols=(1,2,3,4,5,6), unpack=True, invalid_raise=False)
+                day,month,fat,water,muscle,bone= np.genfromtxt(filename, missing_values=",", filling_values = -1,
+                                                               usecols=(1,2,3,4,5,6), unpack=True, invalid_raise=False)
             except:
                 return
             try:
@@ -101,8 +85,6 @@ class data:
         t, dist, vel, altitude = [], [], [], []
         bpm, bpm_max=[], []
         day, month = [], []
-        route = []
-        vo2max = []
         if year==2016:
             t_no_formatting,dist,bpm,bpm_max,day= np.genfromtxt(filename, unpack=True)
             t_for_velo,t = tConvert(t_no_formatting)
@@ -115,15 +97,10 @@ class data:
             mins,sec,dist,bpm,bpm_max,altitude,day,month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
             t=mins+sec/60.
             vel=calcVelo(dist,t/60)
-        if year==2022:
-            mins,sec,dist, bpm, bpm_max,altitude,day,month,route= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
-            t=mins+sec/60.
-            vel=calcVelo(dist,t/60)
         if year>=2022:
-            mins,sec,dist, bpm, bpm_max,altitude,day,month,vo2max= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+            mins,sec,dist,day,month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
             t=mins+sec/60.
             vel=calcVelo(dist,t/60)
-
         """
         if year==2021:
             mins,sec,dist,bpm,bpm_max,altitude,day,month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
@@ -142,18 +119,13 @@ class data:
         if year!=2016 and year<2022:
             dist/=10.
             vel/=10.
-        if year>=2023:
-            dist/=1000
-            vel/=1000
         self.run[year]={}
         self.run[year]["time"]=t
         self.run[year]["distance"]=dist
         self.run[year]["velocity"]=vel
         self.run[year]["bpm"]=bpm
         self.run[year]["maxbpm"]=bpm_max
-        self.run[year]["route"]=route
-        self.run[year]["vo2max"]=vo2max
-        if len(altitude)==0:
+        if altitude!=[]:
             self.run[year]["altitude"]=altitude
         fillEmpty(month)
         if year==2016:
@@ -232,10 +204,7 @@ class data:
         self.sleep[year]["total"]=total
     HR={}
     def loadHRData(self, filename, year=2019):
-        minHR=[]
-        maxHR=[]
-        if year<2023: rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
-        else: rhr, minHR, maxHR, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+        rhr, day, month= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
         self.HR[year]={}
         fillEmpty(day)
         fillEmpty(month)
@@ -244,40 +213,10 @@ class data:
         bins=dayAndMonthToBin(day,month,year)
         self.HR[year]["bin"]=bins
         self.HR[year]["rhr"]=rhr
-        self.HR[year]["minHR"]=minHR
-        self.HR[year]["maxHR"]=maxHR
-    cal={}
-    def loadCalData(self, filename, year=2019):
-        day, month, intake, active, passive, garmin, gym= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
-        self.cal[year]={}
-        fillEmpty(day)
-        fillEmpty(month)
-        self.cal[year]["day"]=day
-        self.cal[year]["month"]=month
-        bins=dayAndMonthToBin(day,month,year)
-        self.cal[year]["bin"]=bins
-        self.cal[year]["intake"]=intake
-        self.cal[year]["active"]=active
-        self.cal[year]["passive"]=passive
-        self.cal[year]["garmin"]=garmin
-        self.cal[year]["gym"]=gym
-    gym={}
-    def loadGymData(self, filename, year=2019):
-        day, month, boolean= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
-        self.gym[year]={}
-        fillEmpty(day)
-        fillEmpty(month)
-        self.gym[year]["day"]=day
-        self.gym[year]["month"]=month
-        bins=dayAndMonthToBin(day,month,year)
-        self.gym[year]["bin"]=bins
-        self.gym[year]["boolean"]=boolean
 
     def makePlots(self):
         year=2019
         where="%i/"%(year)
-        #MakeLongStatsPlot(self)
-        #exit()
         for year in self.drawYears:
             print("starting with year:",year)
             where="%i/"%(year)
@@ -295,10 +234,8 @@ class data:
             MakeKMHPlot(rbins,vel,dist,where, savepng=True)
             MakeKMHPlot(rbins,3600./vel,dist,where, savepng=True,timeBool=True)
             try:
-                #MakeKMH_BPMPlot(rbins,vel,bpm,where, savepng=True)
-                #MakeKMH_BPMPlot(rbins,vel,maxbpm,where, savepng=True, maxBPM=True)
-                MakeKMH_BPMPlot(vel,bpm,where, savepng=True)
-                MakeKMH_BPMPlot(vel,maxbpm,where, savepng=True, maxBPM=True)
+                MakeKMH_BPMPlot(rbins,vel,bpm,where, savepng=True)
+                MakeKMH_BPMPlot(rbins,vel,maxbpm,where, savepng=True, maxBPM=True)
                 MakeBPMPlots(rbins,bpm,where, year=year)
                 MakeBPMPlots(rbins,maxbpm,where, option="max",year=year)
             except:
@@ -309,7 +246,7 @@ class data:
             plotVel(vel,rbins,year,where)
             plotVel(vel,rbins,year,where)
             plotLBLequiv(vel,rbins,year,where)
-            if year>2016 :
+            if year>2016:
                 cbins=self.bodycomposition[year]["bin"]
                 water=self.bodycomposition[year]["water"]
                 muscle=self.bodycomposition[year]["muscle"]
@@ -332,18 +269,9 @@ class data:
                 PlotPushups(self,year)
                 try:
                     PlotSleep(self,year)
+                    PlotRHR(self,year)
                 except:
                     pass
-            try:
-                PlotRHR(self,year)
-            except:
-                    pass
-            try:
-                MakeGymPlot(self,year)
-                MakeMonthlyGymPlot(self,year)
-            except:
-                pass
-            makeVo2MaxPlot(self, year)
             MakeMonthCumulPlot(self,onlyYear=year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)
@@ -362,7 +290,6 @@ class data:
         MakeLongCumulPlot(self)
         MakeMonthCumulPlot(self)
         MakeLongRHRPlot(self)
-        self.makeRoutePlots()
 
     def makePlotsShort(self):
         year=2019
@@ -381,9 +308,6 @@ class data:
             MakeCumulPlot(rbins,dist,year,where)
             plotTimePerKM(vel,rbins,year,where)
             MakeMonthCumulPlot(self,onlyYear=year)
-            MakeGymPlot(self,year)
-            MakeMonthlyGymPlot(self,year)
-            makeVo2MaxPlot(self, year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)
         rbins=np.array([])
@@ -401,9 +325,6 @@ class data:
         MakeLongCumulPlot(self)
         MakeMonthCumulPlot(self)
 
-    def makeRoutePlots(self):
-        plotRouteVsLength(self,self.last_year)
-        plotRouteVsNumber(self,self.last_year)
 
 if __name__=="__main__":
     pass

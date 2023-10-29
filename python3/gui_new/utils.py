@@ -202,21 +202,17 @@ def prepPushupArray(dataClass,year,x,y):
             yU=np.append(yU,tmp_yU[i])
     return xU,yU
 
-def DrawWeightInYear(dataClass, year, zorder=1, drawLine=False, fmt="o", drawAll=True, fullYear=False):
+def DrawWeightInYear(dataClass, year, zorder=1, drawLine=False, fmt="o", drawAll=True):
     if year not in dataClass.weight:
         return
     x=dataClass.weight[year]["bin"]
     y=dataClass.weight[year]["weight"]
-    if fullYear:
-        if x[-1]<364:
-            x=np.append(x,365)
-            y=np.append(y,y[-1])
     yerr=calcWeightUncert(y)
     xRun,yRun=prepRunArray(dataClass,year,x,y)
     plt.errorbar(x, y, xerr=0.25, yerr=yerr, fmt=fmt,zorder=zorder)
     zorder+=1
-    if drawAll and not dataClass.short:
-        if year>2018 and year<2022:
+    if drawAll:
+        if year>2018:
             xPushup,yPushup=prepPushupArray(dataClass,year,x,y)
             plt.errorbar(xPushup, yPushup, xerr=0, yerr=0, fmt='D',zorder=zorder)
             zorder+=1
@@ -261,23 +257,8 @@ def DrawBMIInYear(dataClass, year, height=1.7, heightErr=0.01, zorder=1):
 def MakeCombinedStats(dataClass):
     plt.figure(figsize=(10,10))
     zorder=1
-    yearForLabel=2018
-    xAxisDict={}
-    labelsDict={}
-    inRange=False
     for year in range(dataClass.first_year,dataClass.last_year+1):
-        x, y, yerr, xAxis, labels=DrawWeightInYear(dataClass, year, zorder=1, drawLine=False, fmt="o", drawAll=False)
-        xAxisDict[year]=xAxis
-        labelsDict[year]=labels
-        if year==yearForLabel:
-            inRange=True
-    if inRange==False:
-        maxlen=0
-        for year in range(dataClass.first_year,dataClass.last_year+1):
-            if maxlen<len(xAxisDict[year]):
-                maxlen=len(xAxisDict[year])
-                yearForLabel=year
-    plt.xticks(xAxisDict[yearForLabel], labelsDict[yearForLabel], rotation='vertical')
+        DrawWeightInYear(dataClass, year, zorder=1, drawLine=False, fmt="o", drawAll=False)
     SavePlot("combinedStats")
     plt.close()
 
@@ -305,23 +286,15 @@ def MakeLongStatsPlot(dataClass):
     plt.figure(figsize=(20,20))
     zorder=1
 
-    xs=[]; ys=[]; yerrs=[]; xRuns=[]; yRuns=[]; xAxes=[]; labels=[];
-    #years=[]; x_years=[]
+    xs=[]; ys=[]; yerrs=[]; xRuns=[]; yRuns=[]; xAxes=[]; labels=[]
     for year in range(dataClass.first_year,dataClass.last_year+1):
         if year not in dataClass.weight:
             continue
-        #years.append(year)
-        fullYear=True
-        if year==dataClass.last_year: fullYear=False
-        x, y, yerr, xAxis, labelsYear= DrawWeightInYear(dataClass, year, fullYear=fullYear)
+        x, y, yerr, xAxis, labelsYear= DrawWeightInYear(dataClass, year)
         xRun,yRun=prepRunArray(dataClass,year,x,y)
         xs.append(x); ys.append(y); yerrs.append(yerr)
         xRuns.append(xRun); yRuns.append(yRun);
         xAxes.append(xAxis); labels.append(labelsYear)
-        #if len(x_years)==0:
-            #x_years.append(xAxis[0])
-        #else:
-            #x_years.append(xAxis[0]+xAxes[-1])
     x,xRun=add2X(xs,xRuns)
     y=addY(ys)
     yRun=addY(yRuns)
@@ -334,9 +307,6 @@ def MakeLongStatsPlot(dataClass):
     plt.clf()
     plt.errorbar(x, y, xerr=0.25, yerr=yerr, fmt='o',zorder=zorder)
     plt.errorbar(xRun, yRun, xerr=0, yerr=0, fmt='o',zorder=zorder)
-    #for i,year in enumerate(years):
-        #print(x_years[i])
-        #plt.vlines(x_years[i], min(y), max(y), label=str(year))
     plt.xticks(xAxis, label, rotation='vertical')
     plt.ylabel("weight in kg")
     plt.plot((min(x),max(x)),(min(y),min(y)),  color = 'k')
@@ -624,7 +594,6 @@ def MakePercPlot(day,month,year=2016,show=False):
 
 def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False):
 
-    plt.figure(figsize=(8, 8))
     from matplotlib.ticker import NullFormatter
     nullfmt = NullFormatter()         # no labels
 
@@ -649,9 +618,8 @@ def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False):
     #binwidth = .25
     binwidth = 1
     binwidthy=binwidth
-    lowx = max(int(min(dist))-binwidth,0)
-    # highx = max(dist)+1+binwidth
-    highx = int(max(dist))+binwidth
+    lowx = int(min(dist))-binwidth
+    highx = max(dist)+1+binwidth
     lowy = int(min(velo))-binwidthy
     highy = int(max(velo))+1+binwidthy
     if timeBool:
@@ -701,14 +669,10 @@ def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False):
         axScatter.yaxis.set_major_formatter(formatter)
     axHistx.set_ylabel("#entries")
     axHisty.set_xlabel("#entries")
-    if timeBool: SavePlot(where+"kmh2",savepng=savepng,tight=False)
-    else: SavePlot(where+"kmh",savepng=savepng,tight=False)
-    if show==True: plt.show()
-    plt.close()
 
-def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=False, timeBool=False):
+def MakeKMH_BPMPlot(day,velo,bpm,where,savepng=False,show=False, maxBPM=False, timeBool=False):
 
-    plt.figure(figsize=(8, 8))
+    #plt.figure(figsize=(8, 8))
     from matplotlib.ticker import NullFormatter
     nullfmt = NullFormatter()         # no labels
 
@@ -733,9 +697,6 @@ def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=Fa
     #binwidth = .25
     binwidth = 1
     binwidthy=binwidth
-
-    bpm=[x for x in bpm_orig if x>0]
-    velo=[y for x,y in zip(bpm_orig,velo_orig) if x>0]
     lowx = int(min(bpm))-binwidth
     highx = max(bpm)+1+binwidth
     lowy = int(min(velo))-binwidthy
@@ -789,16 +750,14 @@ def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=Fa
     axHisty.set_xlabel("#entries")
     adder=""
     if maxBPM: adder="max"
-    if timeBool: SavePlot(where+"kmh2_bpm"+adder,savepng=savepng,tight=False)
-    else: SavePlot(where+"kmh_bpm"+adder,savepng=savepng,tight=False)
-    if show==True: plt.show()
-    plt.close()
+    #if timeBool: SavePlot(where+"kmh2_bpm"+adder,savepng=savepng,tight=False)
+    #else: SavePlot(where+"kmh_bpm"+adder,savepng=savepng,tight=False)
+    #if show==True: plt.show()
+    #plt.close()
 
-def MakeBPMPlots(day_orig,bpm_orig,where,option="avg",year=2016,show=False):
+def MakeBPMPlots(day,bpm,where,option="avg",year=2016,show=False):
 
     plt.figure(figsize=(10,10))
-    bpm=[x for x in bpm_orig if x>0]
-    day=[y for x,y in zip(bpm_orig,day_orig) if x>0]
     xAxis,labels=makeLabels(day,year)
     plt.xticks(xAxis, labels, rotation='vertical')
     plt.plot(day,bpm,linestyle="",marker="x")
@@ -883,8 +842,7 @@ def MakeDeltaPlot(bins,weight,year=2016,where="",show=False,savepng=False):
     x=bins
     weightDelta = delta(weight)
     weightDelta = np.append(weightDelta,0)
-    nWeeks=int(ceil((x[-1])/7))
-    #print(nWeeks)
+    nWeeks=int(ceil(x[-1]/7))
     weightDeltaRebin = np.zeros(nWeeks)
     xRebin = np.ones(nWeeks)
     i=0
@@ -892,8 +850,6 @@ def MakeDeltaPlot(bins,weight,year=2016,where="",show=False,savepng=False):
         curWeek=i+1
         weightDeltaRebin[i]+=weight
         if int(pos/7)==curWeek: i+=1
-        # print(xRebin)
-        # print(i)
         xRebin[i]=i+1
 
     plt.figure(figsize=(10,10))
@@ -1151,8 +1107,8 @@ def plotPushups(number,day,year):
     plt.close()
 
 def plotVeloHeight(hoehe,vel5,where=""):
-    x=[x for x in hoehe if x>0]
-    y=[y for x,y in zip(hoehe,vel5) if x>0]
+    x=hoehe
+    y=vel5
 
     plt.figure(figsize=(10,10))
     plt.plot(x, y, 'rs')
@@ -1172,7 +1128,7 @@ def plotBPMHeight(hoehe,bpm,where,option=""):
     x=[]
     y=[]
     for i,j in zip(hoehe,bpm):
-        if j>0 and i>0:
+        if j>0:
             x.append(i)
             y.append(j)
 
@@ -1299,113 +1255,6 @@ def PlotRHR(dataClass,year=2016,save=True,show=False):
     if show==True: plt.show()
     plt.close()
     return x, y, xAxis, labels
-
-def plotRouteVsLength(dataClass,year=2016,save=True,show=False):
-
-    plt.figure(figsize=(10,10))
-    x=dataClass.run[year]["route"]
-    y=dataClass.run[year]["distance"]
-    plt.plot(x,y,linestyle='',marker="+")
-    xAxis,labels=getRouteLabels(x)
-    plt.xticks(xAxis, labels, rotation='vertical')
-    plt.xlabel("routes")
-    plt.ylabel("distance")
-    if save==True: SavePlot("%i/route_length"%(year))
-    if show==True: plt.show()
-    plt.close()
-
-def plotRouteVsNumber(dataClass,year=2016,save=True,show=False):
-
-    plt.figure(figsize=(10,10))
-    inp=dataClass.run[year]["route"]
-    dic_inp={}
-    for i in inp:
-        if i not in dic_inp.keys():
-            dic_inp[i]=0
-        else:
-            dic_inp[i]+=1
-    x=np.array([],dtype=int)
-    y=np.array([],dtype=int)
-    for key in dic_inp.keys():
-        x=np.append(x,key)
-    for val in dic_inp.values():
-        y=np.append(y,val)
-    plt.plot(x,y,linestyle='',marker="+")
-    xAxis,labels=getRouteLabels(x)
-    plt.xticks(xAxis, labels, rotation='vertical')
-    plt.xlabel("routes")
-    plt.ylabel("number of runs")
-    if save==True: SavePlot("%i/route_number"%(year))
-    if show==True: plt.show()
-    plt.close()
-
-def getRouteLabels(routeNrs):
-    #print(np.genfromtxt("../../data/Strecken.txt",dtype=str))
-    route=np.genfromtxt("../../data/Strecken.txt",dtype=str,delimiter=" ")
-    routeNr=np.array([],dtype=int)
-    routeName=np.array([],dtype=str)
-    for i in route:
-        routeNr=np.append(routeNr,int(i[0]))
-        routeName=np.append(routeName,i[1])
-    return routeNr,routeName
-
-def MakeGymPlot(dataClass,year=2023,save=True,show=False):
-    plt.figure(figsize=(10,10))
-    x=dataClass.gym[year]["bin"]
-    y=dataClass.gym[year]["boolean"]
-    plt.plot(x,y,linestyle='',marker="+")
-    xAxis,labels=makeLabels(x,year)
-    plt.xticks(xAxis, labels, rotation='vertical')
-    plt.xlabel("Monat")
-    plt.ylabel("Been to Gym")
-    if save==True: SavePlot("%i/gym"%(year))
-    if show==True: plt.show()
-    plt.close()
-
-def MakeMonthlyGymPlot(dataClass,year=2023,save=True,show=False):
-    plt.figure(figsize=(10,10))
-    x=np.array([],dtype=int)
-    y=np.array([],dtype=int)
-    s=1
-    for n in range(len(dataClass.gym[year]["boolean"])):
-        i,j=dataClass.gym[year]["month"][n],dataClass.gym[year]["boolean"][n]
-        if len(x)==0 or i!=x[-1]:
-            x=np.append(x,i)
-        if n==len(dataClass.gym[year]["month"])-1:
-            s+=j
-            y=np.append(y,s)
-        elif  dataClass.gym[year]["month"][n]==dataClass.gym[year]["month"][n+1]:
-            s+=j
-        else:
-            y=np.append(y,s)
-            s=1
-    possibleLabels = ['January', 'Febuary', 'March', 'April',
-                      'May','June','July','August','September',
-                      'Oktober','November', 'December']
-
-    plt.plot(x,y,linestyle='',marker="+")
-    xAxis,labels=makeLabels(x,year)
-    lastMonth=int(dataClass.gym[year]["month"][-1])
-    plt.xticks(x[:lastMonth], possibleLabels[:lastMonth], rotation='vertical')
-    plt.xlabel("Monat")
-    plt.ylabel("Been to Gym")
-    if save==True: SavePlot("%i/gymMonthly"%(year))
-    if show==True: plt.show()
-    plt.close()
-
-def makeVo2MaxPlot(dataClass,year=2023,save=True,show=False):
-
-    plt.figure(figsize=(10,10))
-    x=[x for x, y in zip(dataClass.run[year]["bin"], dataClass.run[year]["vo2max"]) if y!=-1]
-    y=[y for y in dataClass.run[year]["vo2max"] if y!=-1]
-    plt.plot(x,y,linestyle='',marker="+")
-    xAxis,labels=makeLabels(x,year)
-    plt.xticks(xAxis, labels, rotation='vertical')
-    plt.xlabel("Monat")
-    plt.ylabel("VO2 Max")
-    SavePlot("%i/vo2max"%(year))
-    if show==True: plt.show()
-    plt.close()
 
 if __name__=="__main__":
     pass
