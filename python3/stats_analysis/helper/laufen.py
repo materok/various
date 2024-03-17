@@ -381,8 +381,11 @@ class data:
             MakeCumulPlot(rbins,dist,year,where)
             plotTimePerKM(vel,rbins,year,where)
             MakeMonthCumulPlot(self,onlyYear=year)
-            MakeGymPlot(self,year)
-            MakeMonthlyGymPlot(self,year)
+            try:
+                MakeGymPlot(self,year)
+                MakeMonthlyGymPlot(self,year)
+            except:
+                pass
             makeVo2MaxPlot(self, year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)

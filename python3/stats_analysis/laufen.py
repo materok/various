@@ -4,7 +4,7 @@ from helper.garminData import garminData
 from helper.utils import *
 
 #def main(lastyear=2023,short=False):
-def main(lastyear=2023,short=True):
+def main(lastyear=2024,short=True):
 
     #print("ok")
     #d.drawYears=[lastyear]
