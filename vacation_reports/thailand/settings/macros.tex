@@ -1,0 +1,13 @@
+%needed for \entry
+\newlength{\spacebox}
+\settowidth{\spacebox}{5cm}			% Box to align text 
+
+\newcommand{\raisedrule}[2][0em]{\leaders\hbox{\rule[#1]{1pt}{#2}}\hfill}
+
+\newcommand{\newpart}[2][blue]{\noindent \uppercase{#2} \color{#1}\raisedrule[.1mm]{3pt}\color{black}\\[1cm]}  %Entryname %color
+
+\newcommand{\entry}[2]{
+\noindent %\hangindent=2em\hangafter=0 % Indentation
+\parbox{\spacebox}{        % Box to align text
+\textit{#1}}		       % Entry name (birth, address, etc.)
+\hspace{1.5em} #2 \par}    % Entry value
