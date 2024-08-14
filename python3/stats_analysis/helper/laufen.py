@@ -341,9 +341,9 @@ class data:
             try:
                 MakeGymPlot(self,year)
                 MakeMonthlyGymPlot(self,year)
+                makeVo2MaxPlot(self, year)
             except:
                 pass
-            makeVo2MaxPlot(self, year)
             MakeMonthCumulPlot(self,onlyYear=year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)
@@ -362,7 +362,10 @@ class data:
         MakeLongCumulPlot(self)
         MakeMonthCumulPlot(self)
         MakeLongRHRPlot(self)
-        self.makeRoutePlots()
+        try:
+            self.makeRoutePlots()
+        except:
+            pass
 
     def makePlotsShort(self):
         year=2019
@@ -384,9 +387,9 @@ class data:
             try:
                 MakeGymPlot(self,year)
                 MakeMonthlyGymPlot(self,year)
+                makeVo2MaxPlot(self, year)
             except:
                 pass
-            makeVo2MaxPlot(self, year)
         MakeCombinedStats(self)
         MakeLongStatsPlot(self)
         rbins=np.array([])

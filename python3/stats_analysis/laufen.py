@@ -3,7 +3,7 @@ from helper.garminData import garminData
 #import numpy as np
 from helper.utils import *
 
-#def main(lastyear=2023,short=False):
+#def main(lastyear=2024,short=False):
 def main(lastyear=2024,short=True):
 
     #print("ok")
@@ -25,7 +25,7 @@ def main(lastyear=2024,short=True):
     d=data(2016,lastyear,short)
     #d=garminData(2016,lastyear,short)
     d.drawYears=[lastyear]
-    #d.drawYears=[i for i in range(2016,2022)]
+    #d.drawYears=[i for i in range(2016,lastyear+1)]
     print( max(d.run[lastyear]["velocity"]), "%i:%2.0f"%(int(60./max(d.run[lastyear]["velocity"])),(60./max(d.run[lastyear]["velocity"])-int(60./max(d.run[lastyear]["velocity"])))*60))
     print( (d.run[lastyear]["velocity"][-1]), "%i:%2.0f"%(int(60./(d.run[lastyear]["velocity"][-1])),(60./(d.run[lastyear]["velocity"][-1])-int(60./(d.run[lastyear]["velocity"][-1])))*60))
     if short:

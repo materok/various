@@ -20,7 +20,7 @@ def reformatRuns():
             secs=f'{round(duration-duration//60*60):2.0f}'
             avgHR=int(jsonFile["averageHR"])
             maxHR=int(jsonFile["maxHR"])
-            elevationGain=jsonFile["elevationGain"]
+            elevationGain=jsonFile.get("elevationGain",None)
             if elevationGain is None:
                 elevationGain=-1
             elevationGain=f'{int(round(elevationGain)):3.0f}'
@@ -29,7 +29,7 @@ def reformatRuns():
             currentYear=runDate.year
             runMonth=f'{runDate.month:2.0f}'.replace(" 0"," ")
             runDay=f'{runDate.day:2.0f}'.replace(" 0", " ")
-            vo2max=jsonFile["vO2MaxValue"]
+            vo2max=jsonFile.get("vO2MaxValue")
             if vo2max is None:
                 vo2max=-1
             else:
