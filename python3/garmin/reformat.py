@@ -46,8 +46,40 @@ def reformatRuns():
                 with open(f'../../data/dataFromGarmin{currentYear}.txt', "a") as f:
                     f.write(f'{mins} {secs} {distance} {avgHR} {maxHR} {elevationGain} {runDay} {runMonth} {vo2max}#activityID: {activityID}\n')
         elif jsonFile["activityType"]["typeKey"] == "cycling":
-            pass
-            #print("this is a cycling activity")
+            #pass
+            activityID=jsonFile["activityId"]
+            distance=round(jsonFile["distance"])
+            distance=f'{distance:5.0f}'.replace(" 0"," ")
+            duration=jsonFile["duration"]
+            mins=f'{int(duration//60):3.0f}'.replace(" 0"," ")
+            secs=f'{round(duration-duration//60*60):2.0f}'
+            avgHR=int(jsonFile["averageHR"])
+            maxHR=int(jsonFile["maxHR"])
+            elevationGain=jsonFile.get("elevationGain",None)
+            if elevationGain is None:
+                elevationGain=-1
+            elevationGain=f'{int(round(elevationGain)):3.0f}'
+            currentYear=datetime.now().year-2000
+            runDate=datetime.strptime(jsonFile["startTimeGMT"], "%Y-%m-%d %H:%M:%S")
+            currentYear=runDate.year
+            runMonth=f'{runDate.month:2.0f}'.replace(" 0"," ")
+            runDay=f'{runDate.day:2.0f}'.replace(" 0", " ")
+            vo2max=jsonFile.get("vO2MaxValue")
+            if vo2max is None:
+                vo2max=-1
+            else:
+                vo2max=int(vo2max)
+            if os.path.exists(f'../../data/bikeDataFromGarmin{currentYear}.txt'):
+                with open(f'../../data/bikeDataFromGarmin{currentYear}.txt', "r") as f:
+                    for line in f:
+                        alreadyInFile=str(activityID)==line.split("activityID: ")[-1].replace("\n","")
+                        if alreadyInFile:
+                            break
+            else:
+                alreadyInFile=False
+            if not alreadyInFile:
+                with open(f'../../data/bikeDataFromGarmin{currentYear}.txt', "a") as f:
+                    f.write(f'{mins} {secs} {distance} {avgHR} {maxHR} {elevationGain} {runDay} {runMonth} {vo2max}#activityID: {activityID}\n')
         else:
             pass
             #print(jsonFile["activityType"]["typeKey"])

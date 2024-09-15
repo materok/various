@@ -390,7 +390,7 @@ def MakeLongStatsPlot(dataClass):
     """
     plt.close()
 
-def MakeLongCumulPlot(dataClass):
+def MakeLongCumulPlot(dataClass, bike=False):
     plt.figure(figsize=(20,20))
     zorder=1
 
@@ -430,16 +430,20 @@ def MakeLongCumulPlot(dataClass):
     plt.title("gelaufene Strecke")
     plt.xlabel("Monat")
     plt.ylabel("Strecke in km")
-    SavePlot("longCumul",tight=False)
+    saveName="longCumul"
+    if bike: saveName="bike_"+saveName
+    SavePlot(saveName,tight=False)
     plt.clf()
     plt.errorbar(x, toty, xerr=0, yerr=0, fmt='o',zorder=zorder)
     plt.xticks(xAxis, label, rotation='vertical')
-    SavePlot("longTotalCumul",tight=False)
+    saveName="longTotalCumul"
+    if bike: saveName="bike_"+saveName
+    SavePlot(saveName,tight=False)
     plt.close()
     print(y[-1])
     print(toty[-1])
 
-def MakeMonthCumulPlot(dataClass, onlyYear=None):
+def MakeMonthCumulPlot(dataClass, onlyYear=None, bike=False):
     plt.figure(figsize=(20,20))
     zorder=1
 
@@ -481,6 +485,7 @@ def MakeMonthCumulPlot(dataClass, onlyYear=None):
     plt.ylabel("Strecke in km")
     outDir=""
     if onlyYear is not None: outDir="%i/"%onlyYear
+    if bike: outDir+="bike_"
     SavePlot(outDir+"monthCumul",tight=False)
     plt.clf()
     plt.errorbar(xAxis[:lastMonth], toty[:lastMonth], xerr=0, yerr=0, fmt='o',zorder=zorder)
@@ -580,7 +585,7 @@ def MakeKMPlots(day,time,velo,year=2016,where="",show=False):
     if show==True: plt.show()
     plt.close()
 
-def MakeCumulPlot(day,distance,year=2016,where="",show=False):
+def MakeCumulPlot(day,distance,year=2016,where="",show=False, bike=False):
 
     import datetime
     today = datetime.date.today()
@@ -604,6 +609,7 @@ def MakeCumulPlot(day,distance,year=2016,where="",show=False):
     plt.title("gelaufene Strecke")
     plt.xlabel("Monat")
     plt.ylabel("Strecke in km")
+    if bike: where+="bike_"
     SavePlot(where+"cumul")
     if show==True: plt.show()
     plt.close()
@@ -622,7 +628,7 @@ def MakePercPlot(day,month,year=2016,show=False):
     if show==True: plt.show()
     plt.close()
 
-def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False):
+def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False, bike=False):
 
     plt.figure(figsize=(8, 8))
     from matplotlib.ticker import NullFormatter
@@ -701,12 +707,13 @@ def MakeKMHPlot(day,velo,dist,where,savepng=False,show=False, timeBool=False):
         axScatter.yaxis.set_major_formatter(formatter)
     axHistx.set_ylabel("#entries")
     axHisty.set_xlabel("#entries")
+    if bike: where += "bike_"
     if timeBool: SavePlot(where+"kmh2",savepng=savepng,tight=False)
     else: SavePlot(where+"kmh",savepng=savepng,tight=False)
     if show==True: plt.show()
     plt.close()
 
-def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=False, timeBool=False):
+def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=False, timeBool=False, bike=False):
 
     plt.figure(figsize=(8, 8))
     from matplotlib.ticker import NullFormatter
@@ -789,12 +796,13 @@ def MakeKMH_BPMPlot(velo_orig,bpm_orig,where,savepng=False,show=False, maxBPM=Fa
     axHisty.set_xlabel("#entries")
     adder=""
     if maxBPM: adder="max"
+    if bike: where += "bike_"
     if timeBool: SavePlot(where+"kmh2_bpm"+adder,savepng=savepng,tight=False)
     else: SavePlot(where+"kmh_bpm"+adder,savepng=savepng,tight=False)
     if show==True: plt.show()
     plt.close()
 
-def MakeBPMPlots(day_orig,bpm_orig,where,option="avg",year=2016,show=False):
+def MakeBPMPlots(day_orig,bpm_orig,where,option="avg",year=2016,show=False, bike=False):
 
     plt.figure(figsize=(10,10))
     bpm=[x for x in bpm_orig if x>0]
@@ -811,6 +819,7 @@ def MakeBPMPlots(day_orig,bpm_orig,where,option="avg",year=2016,show=False):
     plt.title(adder+"Herzfrequenz")
     plt.xlabel("Monat")
     plt.ylabel(adder+ "Herzfrequenz in bpm")
+    if bike: where += "bike_"
     SavePlot(where+adder.split(".")[0]+"bpm")
     if show==True: plt.show()
     plt.close()
@@ -1039,7 +1048,7 @@ def fitIt(gew,day,month,year,where="",thresh=69.5):
     SavePlot(where+"singeStatFit")
     plt.close()
 
-def plotTimePerKM(vel,day,year,where="",):
+def plotTimePerKM(vel,day,year,where="", bike=False):
     import time
     import matplotlib.ticker as ticker
     """
@@ -1070,10 +1079,11 @@ def plotTimePerKM(vel,day,year,where="",):
     plt.subplots_adjust(bottom=0.175)
     plt.ylabel("time per kilometer [min:sec]")#
     #plt.show()
+    if bike: where += "bike_"
     SavePlot(where+"timePerKilometer")
     plt.close()
 
-def plotVel(vel,day,year,where=""):
+def plotVel(vel,day,year,where="", bike=False):
     import matplotlib.ticker as ticker
     y=vel
     #plt.figure(figsize=(20,10))
@@ -1091,6 +1101,7 @@ def plotVel(vel,day,year,where=""):
     plt.subplots_adjust(bottom=0.175)
     plt.ylabel("velocity [km/h]")#
     #plt.show()
+    if bike: where += "bike_"
     SavePlot(where+"vel")
     plt.close()
 
@@ -1150,7 +1161,7 @@ def plotPushups(number,day,year):
     plt.savefig("../../plots/pushups.png")
     plt.close()
 
-def plotVeloHeight(hoehe,vel5,where=""):
+def plotVeloHeight(hoehe,vel5,where="", bike=False):
     x=[x for x in hoehe if x>0]
     y=[y for x,y in zip(hoehe,vel5) if x>0]
 
@@ -1163,10 +1174,11 @@ def plotVeloHeight(hoehe,vel5,where=""):
     #plt.xticks(xAxis, labels, rotation='vertical')
     plt.subplots_adjust(bottom=0.175)
     #plt.show()
+    if bike: where += "bike_"
     SavePlot(where+"altitudeVelo")
     plt.close()
 
-def plotBPMHeight(hoehe,bpm,where,option=""):
+def plotBPMHeight(hoehe,bpm,where,option="", bike=False):
     #x=hoehe
     #y=bpm
     x=[]
@@ -1185,6 +1197,7 @@ def plotBPMHeight(hoehe,bpm,where,option=""):
         plt.ylabel("max bpm")
     plt.subplots_adjust(bottom=0.175)
     plt.tight_layout()
+    if bike: where += "bike_"
     if option=="":
         SavePlot(where+"altitudeBPM")
     elif option=="max":

@@ -47,6 +47,9 @@ class data:
                 if year>=2019 and year<=2023 and path.exists(filename): self.loadHRData(filename, year)
                 filename="../../data/calories"+str(year-2000)+".txt"
                 if year>=2023 and path.exists(filename): self.loadCalData(filename, year)
+            if year>2018:
+                filename=f"../../data/bikeDataFromGarmin{year}.txt"
+            if path.exists(filename): self.loadBikeData(filename, year)
     weight={}
     def loadWeightData(self, filename, year=2019):
         with warnings.catch_warnings():
@@ -166,6 +169,30 @@ class data:
             self.run[year]["bin"]=bins
             self.run[year]["day"]=day
             self.run[year]["month"]=month
+    bike={}
+    def loadBikeData(self, filename, year=2019):
+        t, dist, vel, altitude = [], [], [], []
+        bpm, bpm_max=[], []
+        day, month = [], []
+        vo2max = []
+        mins,sec,dist, bpm, bpm_max,altitude,day,month,vo2max= np.genfromtxt(filename, missing_values=",", filling_values = -1, unpack=True)
+        t=mins+sec/60.
+        dist/=1000
+        vel=calcVelo(dist,t/60)
+        self.bike[year]={}
+        self.bike[year]["time"]=t
+        self.bike[year]["distance"]=dist
+        self.bike[year]["velocity"]=vel
+        self.bike[year]["bpm"]=bpm
+        self.bike[year]["maxbpm"]=bpm_max
+        self.bike[year]["vo2max"]=vo2max
+        if len(altitude)==0:
+            self.bike[year]["altitude"]=altitude
+        fillEmpty(month)
+        bins=dayAndMonthToBin(day,month,year)
+        self.bike[year]["bin"]=bins
+        self.bike[year]["day"]=day
+        self.bike[year]["month"]=month
     mood={}
     def loadMoodData(self, filename, year=2019):
         day, month, average, sad, boring, angry, active, happy, unsure, sick= np.genfromtxt(filename, unpack=True)
@@ -274,10 +301,6 @@ class data:
         self.gym[year]["boolean"]=boolean
 
     def makePlots(self):
-        year=2019
-        where="%i/"%(year)
-        #MakeLongStatsPlot(self)
-        #exit()
         for year in self.drawYears:
             print("starting with year:",year)
             where="%i/"%(year)
@@ -366,16 +389,18 @@ class data:
             self.makeRoutePlots()
         except:
             pass
+        self.makeBikePlots()
+
 
     def makePlotsShort(self):
-        year=2019
-        where="%i/"%(year)
         for year in self.drawYears:
             print("starting with year:",year)
             where="%i/"%(year)
             if not path.isdir("../../plots/"+where): makedirs("../../plots/"+where)
-            rbins=self.run[year]["bin"]
             MakeStats(self, year)
+            if year not in self.run.keys():
+                continue
+            rbins=self.run[year]["bin"]
             time=self.run[year]["time"]
             vel=self.run[year]["velocity"]
             dist=self.run[year]["distance"]
@@ -406,6 +431,92 @@ class data:
         MakeKMHPlot(rbins,3600./vel,dist,"", savepng=True,timeBool=True)
         MakeLongCumulPlot(self)
         MakeMonthCumulPlot(self)
+        self.makeBikePlotsShort()
+
+    def makeBikePlots(self):
+        for year in self.drawYears:
+            print("starting with year:",year)
+            where="%i/"%(year)
+            if not path.isdir("../../plots/"+where): makedirs("../../plots/"+where)
+            if year not in self.bike.keys():
+                continue
+            rbin=self.bike[year]["bin"]
+            time=self.bike[year]["time"]
+            vel=self.bike[year]["velocity"]
+            dist=self.bike[year]["distance"]
+            bpm=self.bike[year]["bpm"]
+            maxbpm=self.bike[year]["maxbpm"]
+            MakeKMHPlot(rbins,vel,dist,where, savepng=True, bike=True)
+            MakeKMHPlot(rbins,3600./vel,dist,where, savepng=True, timeBool=True, bike=True)
+            try:
+                #MakeKMH_BPMPlot(rbins,vel,bpm,where, savepng=True)
+                #MakeKMH_BPMPlot(rbins,vel,maxbpm,where, savepng=True, maxBPM=True)
+                MakeKMH_BPMPlot(vel,bpm,where, savepng=True, bike=True)
+                MakeKMH_BPMPlot(vel,maxbpm,where, savepng=True, maxBPM=True, bike=True)
+                MakeBPMPlots(rbins,bpm,where, year=year, bike=True)
+                MakeBPMPlots(rbins,maxbpm,where, option="max",year=year, bike=True)
+            except:
+                pass
+            MakeCumulPlot(rbins,dist,year,where, bike=True)
+            MakeKMPlots(rbins,time,vel,year,where, bike=True)
+            plotTimePerKM(vel,rbins,year,where, bike=True)
+            plotVel(vel,rbins,year,where, bike=True)
+            plotVel(vel,rbins,year,where, bike=True)
+            if year>2017:
+                try:
+                    altitude=self.bike[year]["altitude"]
+                    plotVeloHeight(altitude,vel,where, bike=True)
+                    plotBPMHeight(altitude,bpm,where, bike=True)
+                    plotBPMHeight(altitude,maxbpm,where,option="max", bike=True)
+                except:
+                    pass
+                pass
+            #MakeMonthCumulPlot(self,onlyYear=year, bike=True)
+        rbins=np.array([])
+        vel=np.array([])
+        dist=np.array([])
+        for year in range(self.first_year,self.last_year+1):
+            if year not in self.bike.keys():
+                continue
+            rbins=np.append(rbins,self.bike[year]["bin"])
+            vel=np.append(vel,self.bike[year]["velocity"])
+            dist=np.append(dist,self.bike[year]["distance"])
+        if len(vel) > 0:
+            MakeKMHPlot(rbins,vel,dist,"",savepng=True, bike=True)
+            MakeKMHPlot(rbins,3600./vel,dist,"", savepng=True,timeBool=True, bike=True)
+            #MakeLongCumulPlot(self, bike=True)
+            #MakeMonthCumulPlot(self, bike=True)
+
+    def makeBikePlotsShort(self):
+        for year in self.drawYears:
+            print("starting with year:",year)
+            where="%i/"%(year)
+            if not path.isdir("../../plots/"+where): makedirs("../../plots/"+where)
+            if year not in self.bike.keys():
+                continue
+            rbin=self.bike[year]["bin"]
+            time=self.bike[year]["time"]
+            vel=self.bike[year]["velocity"]
+            dist=self.bike[year]["distance"]
+            MakeKMHPlot(rbin,vel,dist, where, savepng=True, bike=True)
+            MakeKMHPlot(rbin,3600./vel,dist, where, savepng=True,timeBool=True, bike=True)
+            MakeCumulPlot(rbin,dist,year, where, bike=True)
+            plotTimePerKM(vel,rbin,year, where, bike=True)
+            #MakeMonthCumulPlot(self,onlyYear=year, bike=True)
+        rbins=np.array([])
+        vel=np.array([])
+        dist=np.array([])
+        for year in range(self.first_year,self.last_year+1):
+            if year not in self.bike.keys():
+                continue
+            rbins=np.append(rbins,self.bike[year]["bin"])
+            vel=np.append(vel,self.bike[year]["velocity"])
+            dist=np.append(dist,self.bike[year]["distance"])
+        if len(vel) > 0:
+            MakeKMHPlot(rbins,vel,dist,"",savepng=True, bike=True)
+            MakeKMHPlot(rbins,3600./vel,dist,"", savepng=True,timeBool=True, bike=True)
+            #MakeLongCumulPlot(self, bike=True)
+            #MakeMonthCumulPlot(self, bike=True)
 
     def makeRoutePlots(self):
         plotRouteVsLength(self,self.last_year)
